@@ -1,4 +1,4 @@
-# libmt_wield_hooks: register callbacks when a player switches to items
+## libmt\_wield\_hooks: register callbacks when a player switches to items
 
 This mod adds a mechanism by which other mods can register callbacks called on player item switch.
 A globalstep is registered which, at intervals, polls the wielded item stacks of all connected players.
