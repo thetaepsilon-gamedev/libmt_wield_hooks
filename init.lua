@@ -40,7 +40,7 @@ end
 local cleanup = function(playerref)
 	local olditem = oldwielded[playerref]
 	oldwielded[playerref] = nil
-	callback(registry[olditem], kc_vanished, playerref)
+	callback(registry[olditem], kc_vanished, playerref, olditem)
 end
 
 local process = function()
@@ -55,7 +55,7 @@ local process = function()
 		local cstart = function() callback(currentreg, kc_wield_start, player, itemstack) end
 		if olditem ~= nil then
 			if olditem ~= currentitem then
-				callback(registry[olditem], kc_wield_stop, player)
+				callback(registry[olditem], kc_wield_stop, player, olditem)
 				cstart()
 			end	-- no else: if holding the same item don't do anything
 		else
@@ -121,16 +121,17 @@ local register_wield_hooks = function(itemname, set)
 end
 interface.register_wield_hooks = register_wield_hooks
 
+
+
 -- too lazy to type extra chars...
 local n = function(ref) return ref:get_player_name() end
 local describe = function(itemstack) return itemstack:get_name().." with "..itemstack:get_count().." in stack" end
 
 -- debugging helper for local use; do not use in released mods!
 -- registers callbacks that print messages to console for tracking the code's behaviour.
-local debug_hook = function(itemname, print)
+local make_debug_hooks = function(print)
 	local hooks = {}
-
-	hooks.on_player_vanished = function(player)
+	hooks.on_player_vanished = function(player, itemname)
 		print(n(player).." vanished while holding "..itemname)
 	end
 	hooks.on_wield_start = function(player, itemstack)
@@ -139,11 +140,14 @@ local debug_hook = function(itemname, print)
 	hooks.on_hold = function(player, itemstack)
 		print(n(player).." is holding "..describe(itemstack))
 	end
-	hooks.on_wield_stop = function(player)
+	hooks.on_wield_stop = function(player, itemname)
 		print(n(player).." stopped wielding "..itemname)
 	end
+	return hooks
+end
 
-	register_wield_hooks(itemname, hooks)
+local debug_hook = function(regitem, print)
+	return register_wield_hooks(regitem, make_debug_hooks(print))
 end
 local printer = print
 local debug_hook_console = function(itemname) return debug_hook(itemname, printer) end
