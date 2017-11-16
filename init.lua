@@ -83,3 +83,69 @@ local step = function(dtime)
 end
 
 minetest.register_globalstep(step)
+
+
+
+-- registration functions.
+local interface = {}
+wieldhooks = interface
+
+-- check that passed callback tables are either nil or functions for the expected keys.
+local copy_callback = function(source, target, key)
+	local v = source[key]
+	local t = type(v)
+	if not ((t == "function") or (t == "nil")) then
+		error("callback "..key.." expected to be a function or not set, got "..t)
+	end
+	target[key] = v
+end
+local validate_callbacks = function(source)
+	local result = {}
+	local c = function(k) copy_callback(source, result, k) end
+	c(kc_vanished)
+	c(kc_wield_start)
+	c(kc_wield_stop)
+	c(kc_wield_hold)
+	return result
+end
+
+-- register a callback set for a given item.
+-- currently, only one per item is supported.
+-- TODO: implement handling of multiple callback sets
+local register_wield_hooks = function(itemname, set)
+	local dname = "register_wield_hooks() "
+	if type(itemname) ~= "string" then error(dname.."item name must be a string!") end
+	local reg = validate_callbacks(set)
+	if registry[itemname] ~= nil then error(dname.."duplicate registration for item "..itemname) end
+	registry[itemname] = reg
+end
+interface.register_wield_hooks = register_wield_hooks
+
+-- too lazy to type extra chars...
+local n = function(ref) return ref:get_player_name() end
+local describe = function(itemstack) return itemstack:get_name().." with "..itemstack:get_count().." in stack" end
+
+-- debugging helper for local use; do not use in released mods!
+-- registers callbacks that print messages to console for tracking the code's behaviour.
+local debug_hook = function(itemname, print)
+	local hooks = {}
+
+	hooks.on_player_vanished = function(player)
+		print(n(player).." vanished while holding "..itemname)
+	end
+	hooks.on_wield_start = function(player, itemstack)
+		print(n(player).." pulled out "..describe(itemstack))
+	end
+	hooks.on_hold = function(player, itemstack)
+		print(n(player).." is holding "..describe(itemstack))
+	end
+	hooks.on_wield_stop = function(player)
+		print(n(player).." stopped wielding "..itemname)
+	end
+
+	register_wield_hooks(itemname, hooks)
+end
+local printer = print
+local debug_hook_console = function(itemname) return debug_hook(itemname, printer) end
+interface.debug_hook = debug_hook
+interface.debug_hook_console = debug_hook_console
