@@ -36,8 +36,11 @@ local callback = function(tbl, key, ...)
 end
 -- invoke the requested callback for a given item.
 local item_callback = function(itemname, cname, ...)
-	local reg = registry[itemname]
-	callback(reg, cname, ...)
+	local reglist = registry[itemname]
+	if reglist == nil then return end
+	for _, regset in ipairs(reglist) do
+		invoke_if_present(regset[cname], ...)
+	end
 end
 
 -- callback to clean up a player's entries and notify callbacks that the player vanished.
@@ -120,8 +123,13 @@ local register_wield_hooks = function(itemname, set)
 	local dname = "register_wield_hooks() "
 	if type(itemname) ~= "string" then error(dname.."item name must be a string!") end
 	local reg = validate_callbacks(set)
-	if registry[itemname] ~= nil then error(dname.."duplicate registration for item "..itemname) end
-	registry[itemname] = reg
+
+	local list = registry[itemname]
+	if list == nil then
+		list = {}
+		registry[itemname] = list
+	end
+	table.insert(list, reg)
 end
 interface.register_wield_hooks = register_wield_hooks
 
