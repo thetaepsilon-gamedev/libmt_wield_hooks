@@ -9,11 +9,28 @@ local warning = function(msg)
 	minetest.log("warning", prefix..msg)
 end
 
+-- ## Documentation
 -- callbacks that may be declared by registering mods.
+-- look at the string values rather than the kc_* variables on the left.
 local kc_vanished = "on_player_vanished"
 local kc_wield_start = "on_wield_start"
 local kc_wield_stop = "on_wield_stop"
 local kc_wield_hold = "on_hold"
+--[[
+Both of these are called with arguments of a player ObjectRef and item name of the previous item held.
+* on_player_vanished: called when a player logs out;
+	the ObjectRef is passed from the invoker of register_on_leaveplayer callbacks.
+	the object reference is likely mostly useless but can still be used for indexing tables.
+* on_wield_stop: called when a player is no longer wielding the item associated with this callback.
+The other two are called with the player ObjectRef and the currently wielded ItemStack:
+* on_wield_start: called when a player first switches to the item associated with this callback.
+* on_hold: called repeatedly while a player holds this item.
+	NB: this is not called every globalstep!
+	Server admins may optionally choose to adjust the polling interval as they see fit.
+	If faster-than-default invocation is desired,
+	use a separate globalstep and use these callbacks to start/stop it,
+	such that impact on the server is kept to a minimum.
+]]
 
 
 
