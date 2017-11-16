@@ -34,13 +34,18 @@ local callback = function(tbl, key, ...)
 		return invoke_if_present(tbl[key], ...)
 	end
 end
+-- invoke the requested callback for a given item.
+local item_callback = function(itemname, cname, ...)
+	local reg = registry[itemname]
+	callback(reg, cname, ...)
+end
 
 -- callback to clean up a player's entries and notify callbacks that the player vanished.
 -- allows callbacks for the last held item to arrange clean-up of any lingering world effects etc.
 local cleanup = function(playerref)
 	local olditem = oldwielded[playerref]
 	oldwielded[playerref] = nil
-	callback(registry[olditem], kc_vanished, playerref, olditem)
+	item_callback(olditem, kc_vanished, playerref, olditem)
 end
 
 local process = function()
@@ -50,12 +55,11 @@ local process = function()
 		local olditem = oldwielded[player]
 		local itemstack = player:get_wielded_item()
 		local currentitem = itemstack:get_name()
-		local currentreg = registry[currentitem]
 
-		local cstart = function() callback(currentreg, kc_wield_start, player, itemstack) end
+		local cstart = function() item_callback(currentitem, kc_wield_start, player, itemstack) end
 		if olditem ~= nil then
 			if olditem ~= currentitem then
-				callback(registry[olditem], kc_wield_stop, player, olditem)
+				item_callback(olditem, kc_wield_stop, player, olditem)
 				cstart()
 			end	-- no else: if holding the same item don't do anything
 		else
@@ -63,7 +67,7 @@ local process = function()
 			cstart()
 		end
 		-- invoke continuous fire callbacks
-		callback(currentreg, kc_wield_hold, player, itemstack)
+		item_callback(currentitem, kc_wield_hold, player, itemstack)
 
 		-- record what player was holding for next run
 		oldwielded[player] = currentitem
