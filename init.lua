@@ -1,3 +1,6 @@
+local mname = minetest.get_current_modname()
+local dir = minetest.get_modpath(mname).."/"
+
 local libmthelpers = modns.get("com.github.thetaepsilon.minetest.libmthelpers")
 local newset = libmthelpers.datastructs.new.tableset
 
@@ -112,7 +115,6 @@ minetest.register_globalstep(step)
 
 -- registration functions.
 local interface = {}
-wieldhooks = interface
 
 -- check that passed callback tables are either nil or functions for the expected keys.
 local copy_callback = function(source, target, key)
@@ -182,3 +184,6 @@ local printer = print
 local debug_hook_console = function(itemname) return debug_hook(itemname, printer) end
 interface.debug_hook = debug_hook
 interface.debug_hook_console = debug_hook_console
+
+local modid = dofile(dir.."id.lua")
+modns.register(modid, interface)

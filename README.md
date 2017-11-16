@@ -10,7 +10,8 @@ registered callbacks are invoked. simples.
 Please see the comment block near the top of init.lua for the supported callbacks.
 Any of the on\_* callbacks may be set in a table,
 then pass an item name and that callbacks table to
-wieldhooks.register\_wield\_hooks.
+interface.register\_wield\_hooks.
+The interface can be obtained from modns; see id.lua for the modns ID to use.
 
 ## Caveats
 * Held items are not checked every globalstep invocation.
